@@ -1,11 +1,13 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../api/client";
-import { Cartao, Subtitulo, Titulo, estilos } from "../../../components/ui";
-import { cores, espaco, raio } from "../../../theme";
+import { dataHoraCurta, real } from "../../../format";
+import { Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
+import { cores, espaco, larguras, raio } from "../../../theme";
 import type { RelatorioOcupacao, RelatorioVendas } from "../../../types/api";
+
 
 export function RelatoriosScreen() {
   const [vendas, setVendas] = useState<RelatorioVendas | null>(null);
@@ -32,93 +34,135 @@ export function RelatoriosScreen() {
     }, []),
   );
 
-  if (carregando || !vendas) {
-    return (
-      <View style={[estilos.tela, { justifyContent: "center" }]}>
-        <ActivityIndicator color={cores.primaria} />
-      </View>
-    );
-  }
+  if (carregando || !vendas) return <Carregando />;
 
   return (
-    <ScrollView style={estilos.tela}>
-      <Titulo texto="Relatório de vendas" />
-      <View style={{ flexDirection: "row", gap: espaco.sm, marginBottom: espaco.md }}>
-        <Indicador icone="pricetags-outline" rotulo="Vendas" valor={String(vendas.totalVendas)} />
+    <TelaRolavel largura={larguras.largo}>
+      <Titulo texto="Relatórios" apoio="Vendas e ocupação das sessões." />
+
+      <View style={{ flexDirection: "row", gap: espaco.sm, flexWrap: "wrap" }}>
+        <Indicador icone="receipt-outline" rotulo="Vendas" valor={String(vendas.totalVendas)} />
         <Indicador icone="ticket-outline" rotulo="Ingressos" valor={String(vendas.totalIngressos)} />
         <Indicador
           icone="cash-outline"
           rotulo="Arrecadado"
-          valor={`R$ ${vendas.valorTotalArrecadado.toFixed(2)}`}
+          valor={real(vendas.valorTotalArrecadado)}
+          destaque
         />
       </View>
 
-      <Subtitulo texto="Por sessão" />
-      {vendas.porSessao.map((s) => (
-        <Cartao key={s.sessaoId}>
-          <Text style={{ fontWeight: "700", color: cores.texto }}>{s.evento}</Text>
-          <Text style={{ color: cores.textoSecundario, marginTop: 2 }}>
-            {new Date(s.dataHora).toLocaleString("pt-BR")}
-          </Text>
-          <Text style={{ marginTop: 4, color: cores.texto }}>
-            {s.ingressosVendidos} ingresso(s) · R$ {s.valorArrecadado.toFixed(2)}
-          </Text>
-        </Cartao>
-      ))}
+      <Subtitulo texto="Vendas por sessão" />
+      {vendas.porSessao.length === 0 ? (
+        <Vazio icone="receipt-outline" texto="Nenhuma venda registrada ainda." />
+      ) : (
+        vendas.porSessao.map((s) => (
+          <Cartao key={s.sessaoId} style={{ paddingVertical: espaco.md }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: espaco.md }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: "700", color: cores.texto, fontSize: 15 }}>{s.evento}</Text>
+                <Text style={{ color: cores.textoSecundario, fontSize: 13, marginTop: 2 }}>
+                  {dataHoraCurta(s.dataHora)}
+                  {" · "}
+                  {s.ingressosVendidos} {s.ingressosVendidos === 1 ? "ingresso" : "ingressos"}
+                </Text>
+              </View>
+              <Text style={{ fontWeight: "800", color: cores.texto, fontSize: 15 }}>
+                {real(s.valorArrecadado)}
+              </Text>
+            </View>
+          </Cartao>
+        ))
+      )}
 
-      <Titulo texto="Taxa de ocupação por sessão" />
-      {ocupacao.map((o) => (
-        <Cartao key={o.sessaoId}>
-          <Text style={{ fontWeight: "700", color: cores.texto }}>
-            {o.evento} · {o.sala}
-          </Text>
-          <Text style={{ color: cores.textoSecundario, marginTop: 2 }}>
-            {new Date(o.dataHora).toLocaleString("pt-BR")}
-          </Text>
+      <Subtitulo texto="Taxa de ocupação" />
+      {ocupacao.length === 0 ? (
+        <Vazio icone="bar-chart-outline" texto="Nenhuma sessão cadastrada." />
+      ) : (
+        ocupacao.map((o) => (
+          <Cartao key={o.sessaoId}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: "700", color: cores.texto, fontSize: 15 }}>{o.evento}</Text>
+                <Text style={{ color: cores.textoSecundario, fontSize: 13, marginTop: 2 }}>
+                  {o.sala} ·{" "}
+                  {dataHoraCurta(o.dataHora)}
+                </Text>
+              </View>
+              <Text style={{ fontWeight: "800", color: cores.texto, fontSize: 20 }}>
+                {(o.taxaOcupacao * 100).toFixed(0)}%
+              </Text>
+            </View>
 
-          <View
-            style={{
-              height: 10,
-              borderRadius: raio.pill,
-              backgroundColor: cores.neutroFundo,
-              marginTop: espaco.md,
-              overflow: "hidden",
-              flexDirection: "row",
-            }}
-          >
-            <View style={{ flex: o.vendidos, backgroundColor: cores.perigo }} />
-            <View style={{ flex: o.reservados, backgroundColor: cores.aviso }} />
-            <View style={{ flex: o.livres || 0.0001, backgroundColor: cores.neutroFundo }} />
-          </View>
+            {/* Barra: vendidos | reservados | livres */}
+            <View style={{ flexDirection: "row", height: 10, borderRadius: raio.pill, overflow: "hidden", marginTop: espaco.md, backgroundColor: cores.neutroFundo }}>
+              {o.vendidos > 0 && <View style={{ flex: o.vendidos, backgroundColor: cores.primaria }} />}
+              {o.reservados > 0 && (
+                <View style={{ flex: o.reservados, backgroundColor: cores.assentoReservado }} />
+              )}
+              {o.livres > 0 && <View style={{ flex: o.livres, backgroundColor: cores.neutroFundo }} />}
+            </View>
 
-          <Text style={{ marginTop: espaco.sm, color: cores.textoSecundario }}>
-            Vendidos: {o.vendidos} · Reservados: {o.reservados} · Livres: {o.livres} / {o.totalAssentos}
-          </Text>
-          <Text style={{ fontWeight: "800", color: cores.primaria, marginTop: 2, fontSize: 16 }}>
-            {(o.taxaOcupacao * 100).toFixed(0)}% ocupado
-          </Text>
-        </Cartao>
-      ))}
-    </ScrollView>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: espaco.lg, marginTop: espaco.md }}>
+              <Parcela cor={cores.primaria} rotulo="Vendidos" valor={o.vendidos} />
+              <Parcela cor={cores.assentoReservado} rotulo="Reservados" valor={o.reservados} />
+              <Parcela cor={cores.bordaForte} rotulo="Livres" valor={o.livres} />
+              <Parcela rotulo="Total de lugares" valor={o.totalAssentos} />
+            </View>
+          </Cartao>
+        ))
+      )}
+    </TelaRolavel>
   );
 }
 
-function Indicador({ icone, rotulo, valor }: { icone: any; rotulo: string; valor: string }) {
+function Indicador({
+  icone,
+  rotulo,
+  valor,
+  destaque = false,
+}: {
+  icone: keyof typeof Ionicons.glyphMap;
+  rotulo: string;
+  valor: string;
+  destaque?: boolean;
+}) {
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: cores.superficie,
+        minWidth: 110,
+        backgroundColor: destaque ? cores.tinta : cores.superficie,
         borderRadius: raio.lg,
         borderWidth: 1,
-        borderColor: cores.borda,
-        padding: espaco.md,
-        alignItems: "center",
+        borderColor: destaque ? cores.tinta : cores.borda,
+        padding: espaco.lg,
       }}
     >
-      <Ionicons name={icone} size={18} color={cores.primaria} />
-      <Text style={{ fontWeight: "800", fontSize: 15, color: cores.texto, marginTop: 4 }}>{valor}</Text>
-      <Text style={{ fontSize: 11, color: cores.textoSecundario }}>{rotulo}</Text>
+      <Ionicons name={icone} size={18} color={destaque ? "rgba(255,255,255,0.7)" : cores.textoSecundario} />
+      <Text
+        style={{
+          fontWeight: "800",
+          fontSize: 20,
+          color: destaque ? "#fff" : cores.texto,
+          marginTop: espaco.sm,
+        }}
+      >
+        {valor}
+      </Text>
+      <Text style={{ fontSize: 12, color: destaque ? "rgba(255,255,255,0.65)" : cores.textoSecundario }}>
+        {rotulo}
+      </Text>
+    </View>
+  );
+}
+
+function Parcela({ cor, rotulo, valor }: { cor?: string; rotulo: string; valor: number }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      {cor ? <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: cor }} /> : null}
+      <Text style={{ fontSize: 13, color: cores.textoSecundario }}>
+        {rotulo}: <Text style={{ fontWeight: "700", color: cores.texto }}>{valor}</Text>
+      </Text>
     </View>
   );
 }

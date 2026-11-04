@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, Vie
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../../context/AuthContext";
 import { Botao, Campo, Erro } from "../../components/ui";
-import { cores, espaco, raio } from "../../theme";
+import { cores, espaco, raio, sombraMedia } from "../../theme";
 
 export function LoginScreen({ navigation }: { navigation: any }) {
   const { entrar } = useAuth();
@@ -26,57 +26,80 @@ export function LoginScreen({ navigation }: { navigation: any }) {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: cores.primaria }}
+      style={{ flex: 1, backgroundColor: cores.tinta }}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", padding: espaco.xl }}>
-        <View style={{ alignItems: "center", marginBottom: espaco.xxl }}>
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          padding: espaco.lg,
+        }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={{ width: "100%", maxWidth: 400 }}>
+          <View style={{ alignItems: "center", marginBottom: espaco.xl }}>
+            <View
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: raio.lg,
+                backgroundColor: cores.primaria,
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: espaco.md,
+              }}
+            >
+              <Ionicons name="film" size={30} color="#fff" />
+            </View>
+            <Text style={{ fontSize: 26, fontWeight: "800", color: "#fff", letterSpacing: -0.5 }}>
+              Bilheteria
+            </Text>
+            <Text style={{ color: "rgba(255,255,255,0.6)", marginTop: 4, fontSize: 14 }}>
+              Ingressos com assento marcado
+            </Text>
+          </View>
+
           <View
             style={{
-              width: 72,
-              height: 72,
-              borderRadius: raio.lg,
-              backgroundColor: "rgba(255,255,255,0.15)",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: espaco.md,
+              backgroundColor: cores.superficie,
+              borderRadius: raio.xl,
+              padding: espaco.xl,
+              ...sombraMedia,
             }}
           >
-            <Ionicons name="film" size={36} color="#fff" />
+            <Erro mensagem={erro} />
+            <Campo
+              label="E-mail"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              placeholder="voce@exemplo.com"
+            />
+            <Campo
+              label="Senha"
+              value={senha}
+              onChangeText={setSenha}
+              secureTextEntry
+              placeholder="••••••"
+              onSubmitEditing={aoEntrar}
+              returnKeyType="go"
+            />
+            <View style={{ marginTop: espaco.sm }}>
+              <Botao titulo="Entrar" onPress={aoEntrar} carregando={carregando} />
+            </View>
           </View>
-          <Text style={{ fontSize: 24, fontWeight: "800", color: "#fff" }}>Bilheteria</Text>
-          <Text style={{ color: "rgba(255,255,255,0.8)", marginTop: 4 }}>
-            Ingressos com assento marcado
-          </Text>
-        </View>
 
-        <View
-          style={{
-            backgroundColor: cores.superficie,
-            borderRadius: raio.lg,
-            padding: espaco.lg,
-          }}
-        >
-          <Erro mensagem={erro} />
-          <Campo
-            label="E-mail"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            placeholder="voce@exemplo.com"
-          />
-          <Campo
-            label="Senha"
-            value={senha}
-            onChangeText={setSenha}
-            secureTextEntry
-            placeholder="••••••"
-          />
-          <Botao titulo="Entrar" onPress={aoEntrar} carregando={carregando} />
-          <TouchableOpacity onPress={() => navigation.navigate("Registro")} style={{ marginTop: espaco.lg }}>
-            <Text style={{ textAlign: "center", color: cores.primaria, fontWeight: "600" }}>
-              Não tem conta? Cadastre-se
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Registro")}
+            style={{ marginTop: espaco.xl, alignSelf: "center" }}
+            hitSlop={10}
+          >
+            <Text style={{ color: "rgba(255,255,255,0.75)", fontSize: 14 }}>
+              Não tem conta? <Text style={{ color: "#fff", fontWeight: "700" }}>Cadastre-se</Text>
             </Text>
           </TouchableOpacity>
         </View>

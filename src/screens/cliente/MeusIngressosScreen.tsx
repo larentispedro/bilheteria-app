@@ -1,19 +1,16 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { ActivityIndicator, FlatList, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { RefreshControl, Text } from "react-native";
 import { api } from "../../api/client";
-import { Badge, estilos } from "../../components/ui";
-import { cores, espaco, raio, sombra } from "../../theme";
+import { Carregando, Lista, Vazio } from "../../components/ui";
+import { TicketIngresso } from "../../components/TicketIngresso";
+import { cores, espaco } from "../../theme";
 import type { Ingresso } from "../../types/api";
-
-function formatarData(iso: string) {
-  return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
-}
 
 export function MeusIngressosScreen() {
   const [ingressos, setIngressos] = useState<Ingresso[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [atualizando, setAtualizando] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -28,60 +25,35 @@ export function MeusIngressosScreen() {
     }, []),
   );
 
-  if (carregando) {
-    return (
-      <View style={[estilos.tela, { justifyContent: "center" }]}>
-        <ActivityIndicator color={cores.primaria} />
-      </View>
-    );
+  async function atualizar() {
+    setAtualizando(true);
+    await api.get<Ingresso[]>("/ingressos/meus").then(setIngressos).finally(() => setAtualizando(false));
   }
 
+  if (carregando) return <Carregando />;
+
   return (
-    <View style={estilos.tela}>
-      <FlatList
-        data={ingressos}
-        keyExtractor={(item) => String(item.id)}
-        ListEmptyComponent={
-          <View style={{ alignItems: "center", marginTop: espaco.xxl }}>
-            <Ionicons name="ticket-outline" size={40} color={cores.textoSecundario} />
-            <Text style={{ color: cores.textoSecundario, marginTop: espaco.sm }}>
-              Você ainda não tem ingressos.
-            </Text>
-          </View>
-        }
-        renderItem={({ item }) => (
-          <View style={{ borderRadius: raio.lg, overflow: "hidden", marginBottom: espaco.md, ...sombra }}>
-            <View style={{ backgroundColor: cores.primaria, padding: espaco.lg }}>
-              <Text style={{ color: "#fff", fontWeight: "800", fontSize: 16 }}>
-                {item.reserva.sessao.evento.titulo}
-              </Text>
-              <Text style={{ color: "rgba(255,255,255,0.85)", marginTop: 2 }}>
-                {formatarData(item.reserva.sessao.dataHora)}
-              </Text>
-            </View>
-            <View style={{ backgroundColor: cores.superficie, padding: espaco.lg }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-                <View>
-                  <Text style={{ color: cores.textoSecundario, fontSize: 12 }}>ASSENTO</Text>
-                  <Text style={{ fontWeight: "700", fontSize: 18, color: cores.texto }}>
-                    {item.reserva.assento.fila}
-                    {item.reserva.assento.numero}
-                  </Text>
-                </View>
-                <Badge
-                  texto={item.status === "UTILIZADO" ? "Utilizado" : "Válido"}
-                  tom={item.status === "UTILIZADO" ? "utilizado" : "valido"}
-                />
-              </View>
-              <View style={{ height: 1, backgroundColor: cores.borda, marginVertical: espaco.md }} />
-              <Text style={{ fontSize: 11, color: cores.textoSecundario }}>CÓDIGO</Text>
-              <Text style={{ fontFamily: "monospace", fontWeight: "700", color: cores.texto }}>
-                {item.codigoUnico}
-              </Text>
-            </View>
-          </View>
-        )}
-      />
-    </View>
+    <Lista
+      data={ingressos}
+      keyExtractor={(item) => String(item.id)}
+      contentContainerStyle={{ padding: espaco.lg }}
+      refreshControl={
+        <RefreshControl refreshing={atualizando} onRefresh={atualizar} tintColor={cores.primaria} />
+      }
+      ListHeaderComponent={
+        ingressos.length > 0 ? (
+          <Text style={{ color: cores.textoSecundario, fontSize: 14, marginBottom: espaco.md }}>
+            Apresente o código na entrada da sessão.
+          </Text>
+        ) : undefined
+      }
+      ListEmptyComponent={
+        <Vazio
+          icone="ticket-outline"
+          texto={"Você ainda não tem ingressos.\nEscolha uma sessão para comprar."}
+        />
+      }
+      renderItem={({ item }) => <TicketIngresso ingresso={item} />}
+    />
   );
 }
