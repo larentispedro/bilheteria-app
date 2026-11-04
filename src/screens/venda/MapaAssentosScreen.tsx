@@ -3,13 +3,14 @@ import { useFocusEffect } from "@react-navigation/native";
 import { ActivityIndicator, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { api, ApiError } from "../../api/client";
 import { Botao, Erro, Titulo, estilos } from "../../components/ui";
+import { cores, espaco, raio } from "../../theme";
 import type { AssentoMapa, Sessao } from "../../types/api";
 
-const CORES: Record<string, string> = {
-  livre: "#ffffff",
-  reservado: "#fbbf24",
-  vendido: "#dc2626",
-  selecionado: "#2f5bea",
+const CORES_ASSENTO: Record<string, { fundo: string; borda: string; texto: string }> = {
+  livre: { fundo: "#ffffff", borda: cores.borda, texto: cores.texto },
+  reservado: { fundo: cores.aviso, borda: cores.aviso, texto: "#fff" },
+  vendido: { fundo: cores.perigo, borda: cores.perigo, texto: "#fff" },
+  selecionado: { fundo: cores.primaria, borda: cores.primaria, texto: "#fff" },
 };
 
 export function MapaAssentosScreen({ route, navigation }: { route: any; navigation: any }) {
@@ -63,7 +64,7 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
   if (carregando) {
     return (
       <View style={[estilos.tela, { justifyContent: "center" }]}>
-        <ActivityIndicator />
+        <ActivityIndicator color={cores.primaria} />
       </View>
     );
   }
@@ -72,43 +73,62 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
 
   return (
     <View style={estilos.tela}>
-      <Titulo texto={`${sessao.evento.titulo} - ${sessao.sala.nome}`} />
+      <Titulo texto={sessao.evento.titulo} />
+      <Text style={{ color: cores.textoSecundario, marginTop: -8, marginBottom: espaco.md }}>
+        {sessao.sala.nome}
+      </Text>
       <Erro mensagem={erro} />
+
+      <View
+        style={{
+          height: 8,
+          borderRadius: raio.pill,
+          backgroundColor: cores.borda,
+          marginHorizontal: 30,
+          marginBottom: 6,
+        }}
+      />
+      <Text
+        style={{
+          textAlign: "center",
+          color: cores.textoSecundario,
+          fontSize: 11,
+          letterSpacing: 2,
+          marginBottom: espaco.lg,
+        }}
+      >
+        TELA
+      </Text>
+
       <ScrollView>
         {filas.map((fila) => (
-          <View key={fila} style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
-            <Text style={{ width: 24, fontWeight: "700" }}>{fila}</Text>
+          <View key={fila} style={{ flexDirection: "row", alignItems: "center", marginBottom: espaco.sm }}>
+            <Text style={{ width: 20, fontWeight: "700", color: cores.textoSecundario }}>{fila}</Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, flex: 1 }}>
               {assentos
                 .filter((a) => a.fila === fila)
                 .map((assento) => {
-                  const cor = selecionados.includes(assento.id)
-                    ? CORES.selecionado
-                    : CORES[assento.status];
+                  const paleta = selecionados.includes(assento.id)
+                    ? CORES_ASSENTO.selecionado
+                    : CORES_ASSENTO[assento.status];
                   return (
                     <TouchableOpacity
                       key={assento.id}
+                      activeOpacity={0.7}
                       onPress={() => alternarAssento(assento)}
                       disabled={assento.status !== "livre"}
                       style={{
-                        width: 34,
-                        height: 34,
-                        borderRadius: 6,
-                        backgroundColor: cor,
-                        borderWidth: 1,
-                        borderColor: "#999",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        backgroundColor: paleta.fundo,
+                        borderWidth: 1.5,
+                        borderColor: paleta.borda,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 11,
-                          color: selecionados.includes(assento.id) || assento.status === "vendido"
-                            ? "#fff"
-                            : "#333",
-                        }}
-                      >
+                      <Text style={{ fontSize: 11, fontWeight: "600", color: paleta.texto }}>
                         {assento.numero}
                       </Text>
                     </TouchableOpacity>
@@ -119,14 +139,16 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
         ))}
       </ScrollView>
 
-      <View style={{ flexDirection: "row", gap: 10, marginVertical: 10 }}>
-        <LegendaCor cor={CORES.livre} texto="Livre" />
-        <LegendaCor cor={CORES.reservado} texto="Reservado" />
-        <LegendaCor cor={CORES.vendido} texto="Vendido" />
-        <LegendaCor cor={CORES.selecionado} texto="Selecionado" />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: espaco.md, marginVertical: espaco.md }}>
+        <LegendaCor cor={CORES_ASSENTO.livre.fundo} borda={CORES_ASSENTO.livre.borda} texto="Livre" />
+        <LegendaCor cor={CORES_ASSENTO.reservado.fundo} texto="Reservado" />
+        <LegendaCor cor={CORES_ASSENTO.vendido.fundo} texto="Vendido" />
+        <LegendaCor cor={CORES_ASSENTO.selecionado.fundo} texto="Selecionado" />
       </View>
 
-      <Text style={{ marginBottom: 8 }}>{selecionados.length} assento(s) selecionado(s)</Text>
+      <Text style={{ marginBottom: espaco.sm, color: cores.textoSecundario, fontWeight: "600" }}>
+        {selecionados.length} assento(s) selecionado(s)
+      </Text>
       <Botao
         titulo="Reservar assentos selecionados"
         onPress={confirmarReserva}
@@ -137,11 +159,20 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
   );
 }
 
-function LegendaCor({ cor, texto }: { cor: string; texto: string }) {
+function LegendaCor({ cor, borda, texto }: { cor: string; borda?: string; texto: string }) {
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-      <View style={{ width: 12, height: 12, backgroundColor: cor, borderWidth: 1, borderColor: "#999" }} />
-      <Text style={{ fontSize: 11 }}>{texto}</Text>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View
+        style={{
+          width: 14,
+          height: 14,
+          borderRadius: 4,
+          backgroundColor: cor,
+          borderWidth: 1.5,
+          borderColor: borda ?? cor,
+        }}
+      />
+      <Text style={{ fontSize: 12, color: cores.textoSecundario }}>{texto}</Text>
     </View>
   );
 }

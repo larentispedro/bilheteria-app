@@ -2,6 +2,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { Botao, Campo, Erro, Titulo, estilos } from "../../components/ui";
+import { cores } from "../../theme";
 
 export function RegistroScreen() {
   const { registrar } = useAuth();
@@ -25,21 +26,28 @@ export function RegistroScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={estilos.tela}
+      style={[estilos.tela, { backgroundColor: cores.fundo }]}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView contentContainerStyle={{ justifyContent: "center", flexGrow: 1 }}>
         <Titulo texto="Criar conta de cliente" />
         <Erro mensagem={erro} />
-        <Campo label="Nome" value={nome} onChangeText={setNome} />
+        <Campo label="Nome" value={nome} onChangeText={setNome} placeholder="Seu nome" />
         <Campo
           label="E-mail"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          placeholder="voce@exemplo.com"
         />
-        <Campo label="Senha (mín. 6 caracteres)" value={senha} onChangeText={setSenha} secureTextEntry />
+        <Campo
+          label="Senha (mín. 6 caracteres)"
+          value={senha}
+          onChangeText={setSenha}
+          secureTextEntry
+          placeholder="••••••"
+        />
         <Botao titulo="Cadastrar" onPress={aoRegistrar} carregando={carregando} />
       </ScrollView>
     </KeyboardAvoidingView>

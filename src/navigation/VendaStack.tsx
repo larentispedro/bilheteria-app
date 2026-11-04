@@ -3,12 +3,13 @@ import { ListaSessoesScreen } from "../screens/venda/ListaSessoesScreen";
 import { MapaAssentosScreen } from "../screens/venda/MapaAssentosScreen";
 import { CheckoutScreen } from "../screens/venda/CheckoutScreen";
 import { SairBotao } from "./SairBotao";
+import { opcoesNavegacao } from "../theme";
 
 const Stack = createNativeStackNavigator();
 
 export function VendaStack() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={opcoesNavegacao}>
       <Stack.Screen
         name="ListaSessoes"
         component={ListaSessoesScreen}

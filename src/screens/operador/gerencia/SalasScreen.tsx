@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { FlatList, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "../../../api/client";
-import { Botao, Campo, Erro, Titulo, estilos } from "../../../components/ui";
+import { Badge, Botao, Campo, Cartao, Erro, Subtitulo, Titulo, estilos } from "../../../components/ui";
+import { cores, espaco } from "../../../theme";
 import type { Sala } from "../../../types/api";
 
 export function SalasScreen() {
@@ -58,32 +60,41 @@ export function SalasScreen() {
     <View style={estilos.tela}>
       <Titulo texto="Salas" />
       <Erro mensagem={erro} />
-      <Campo label="Nome da sala" value={nome} onChangeText={setNome} />
-      <Botao titulo="Criar sala" onPress={criarSala} carregando={salvando} desabilitado={!nome} />
+      <Cartao>
+        <Campo label="Nome da sala" value={nome} onChangeText={setNome} placeholder="Ex.: Sala 1" />
+        <Botao titulo="Criar sala" onPress={criarSala} carregando={salvando} desabilitado={!nome} />
+      </Cartao>
 
+      <Subtitulo texto={`Cadastradas (${salas.length})`} />
       <FlatList
-        style={{ marginTop: 16 }}
         data={salas}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <View style={estilos.cartao}>
-            <Text style={{ fontWeight: "700" }}>{item.nome}</Text>
-            <Text style={{ color: "#555" }}>{item.assentos.length} assento(s) cadastrado(s)</Text>
+          <Cartao>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+              <Text style={{ fontWeight: "700", color: cores.texto }}>{item.nome}</Text>
+              <Badge
+                texto={`${item.assentos.length} assentos`}
+                tom={item.assentos.length > 0 ? "valido" : "reservado"}
+              />
+            </View>
 
             {item.assentos.length === 0 &&
               (salaSelecionada === item.id ? (
-                <View style={{ marginTop: 8 }}>
+                <View style={{ marginTop: espaco.md }}>
                   <Campo
                     label="Fileiras (ex.: A,B,C)"
                     value={filas}
                     onChangeText={setFilas}
                     autoCapitalize="characters"
+                    placeholder="A,B,C"
                   />
                   <Campo
                     label="Assentos por fileira"
                     value={assentosPorFila}
                     onChangeText={setAssentosPorFila}
                     keyboardType="numeric"
+                    placeholder="8"
                   />
                   <Botao
                     titulo="Gerar assentos"
@@ -95,11 +106,11 @@ export function SalasScreen() {
               ) : (
                 <Botao
                   titulo="Cadastrar assentos"
-                  variante="secundario"
+                  variante="fantasma"
                   onPress={() => setSalaSelecionada(item.id)}
                 />
               ))}
-          </View>
+          </Cartao>
         )}
       />
     </View>

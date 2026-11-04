@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "../../../api/client";
-import { Botao, Campo, Erro, Titulo, estilos } from "../../../components/ui";
+import { Botao, Campo, Cartao, Erro, Subtitulo, Titulo, estilos } from "../../../components/ui";
+import { cores, espaco } from "../../../theme";
 import type { Evento } from "../../../types/api";
 
 export function FilmesScreen() {
@@ -61,35 +63,43 @@ export function FilmesScreen() {
     <View style={estilos.tela}>
       <Titulo texto="Filmes / Eventos" />
       <Erro mensagem={erro} />
-      <Campo label="Título" value={titulo} onChangeText={setTitulo} />
-      <Campo label="Descrição (opcional)" value={descricao} onChangeText={setDescricao} />
-      <Campo
-        label="Duração (minutos)"
-        value={duracao}
-        onChangeText={setDuracao}
-        keyboardType="numeric"
-      />
-      <Botao
-        titulo="Adicionar"
-        onPress={criar}
-        carregando={salvando}
-        desabilitado={!titulo || !duracao}
-      />
+      <Cartao>
+        <Campo label="Título" value={titulo} onChangeText={setTitulo} placeholder="Nome do filme/evento" />
+        <Campo
+          label="Descrição (opcional)"
+          value={descricao}
+          onChangeText={setDescricao}
+          placeholder="Sinopse ou observações"
+        />
+        <Campo
+          label="Duração (minutos)"
+          value={duracao}
+          onChangeText={setDuracao}
+          keyboardType="numeric"
+          placeholder="120"
+        />
+        <Botao
+          titulo="Adicionar"
+          onPress={criar}
+          carregando={salvando}
+          desabilitado={!titulo || !duracao}
+        />
+      </Cartao>
 
+      <Subtitulo texto={`Cadastrados (${eventos.length})`} />
       <FlatList
-        style={{ marginTop: 16 }}
         data={eventos}
         keyExtractor={(item) => String(item.id)}
         renderItem={({ item }) => (
-          <View style={[estilos.cartao, { flexDirection: "row", justifyContent: "space-between" }]}>
+          <Cartao style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
             <View>
-              <Text style={{ fontWeight: "700" }}>{item.titulo}</Text>
-              <Text style={{ color: "#555" }}>{item.duracaoMinutos} min</Text>
+              <Text style={{ fontWeight: "700", color: cores.texto }}>{item.titulo}</Text>
+              <Text style={{ color: cores.textoSecundario }}>{item.duracaoMinutos} min</Text>
             </View>
-            <TouchableOpacity onPress={() => remover(item.id)}>
-              <Text style={{ color: "#dc2626" }}>Remover</Text>
+            <TouchableOpacity onPress={() => remover(item.id)} hitSlop={8}>
+              <Ionicons name="trash-outline" size={20} color={cores.perigo} />
             </TouchableOpacity>
-          </View>
+          </Cartao>
         )}
       />
     </View>

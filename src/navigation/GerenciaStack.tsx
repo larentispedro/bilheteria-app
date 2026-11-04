@@ -5,12 +5,13 @@ import { SalasScreen } from "../screens/operador/gerencia/SalasScreen";
 import { SessoesScreen } from "../screens/operador/gerencia/SessoesScreen";
 import { RelatoriosScreen } from "../screens/operador/gerencia/RelatoriosScreen";
 import { SairBotao } from "./SairBotao";
+import { opcoesNavegacao } from "../theme";
 
 const Stack = createNativeStackNavigator();
 
 export function GerenciaStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerRight: () => <SairBotao /> }}>
+    <Stack.Navigator screenOptions={{ headerRight: () => <SairBotao />, ...opcoesNavegacao }}>
       <Stack.Screen name="MenuGerencia" component={MenuGerenciaScreen} options={{ title: "Gerência" }} />
       <Stack.Screen name="Filmes" component={FilmesScreen} options={{ title: "Filmes / Eventos" }} />
       <Stack.Screen name="Salas" component={SalasScreen} options={{ title: "Salas" }} />

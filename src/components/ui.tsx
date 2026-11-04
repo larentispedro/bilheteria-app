@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
   View,
   type TextInputProps,
 } from "react-native";
+import { cores, espaco, raio, sombra } from "../theme";
 
 export function Botao({
   titulo,
@@ -17,20 +19,27 @@ export function Botao({
 }: {
   titulo: string;
   onPress: () => void;
-  variante?: "primario" | "secundario" | "perigo";
+  variante?: "primario" | "secundario" | "perigo" | "fantasma";
   carregando?: boolean;
   desabilitado?: boolean;
 }) {
   return (
     <TouchableOpacity
-      style={[estilos.botao, estilos[`botao_${variante}`], desabilitado && estilos.botaoDesabilitado]}
+      activeOpacity={0.8}
+      style={[
+        estilos.botao,
+        estilos[`botao_${variante}`],
+        (desabilitado || carregando) && estilos.botaoDesabilitado,
+      ]}
       onPress={onPress}
       disabled={desabilitado || carregando}
     >
       {carregando ? (
-        <ActivityIndicator color="#fff" />
+        <ActivityIndicator color={variante === "fantasma" ? cores.primaria : "#fff"} />
       ) : (
-        <Text style={estilos.botaoTexto}>{titulo}</Text>
+        <Text style={[estilos.botaoTexto, variante === "fantasma" && estilos.botaoTextoFantasma]}>
+          {titulo}
+        </Text>
       )}
     </TouchableOpacity>
   );
@@ -40,47 +49,117 @@ export function Campo({ label, ...props }: { label: string } & TextInputProps) {
   return (
     <View style={estilos.campoContainer}>
       <Text style={estilos.campoLabel}>{label}</Text>
-      <TextInput style={estilos.campoInput} placeholderTextColor="#999" {...props} />
+      <TextInput
+        style={estilos.campoInput}
+        placeholderTextColor={cores.textoSecundario}
+        {...props}
+      />
     </View>
   );
 }
 
 export function Erro({ mensagem }: { mensagem?: string | null }) {
   if (!mensagem) return null;
-  return <Text style={estilos.erro}>{mensagem}</Text>;
+  return (
+    <View style={estilos.erroCaixa}>
+      <Text style={estilos.erroTexto}>{mensagem}</Text>
+    </View>
+  );
 }
 
 export function Titulo({ texto }: { texto: string }) {
   return <Text style={estilos.titulo}>{texto}</Text>;
 }
 
+export function Subtitulo({ texto }: { texto: string }) {
+  return <Text style={estilos.subtitulo}>{texto}</Text>;
+}
+
+const CORES_BADGE: Record<string, { fundo: string; texto: string }> = {
+  livre: { fundo: cores.neutroFundo, texto: cores.textoSecundario },
+  reservado: { fundo: cores.avisoFundo, texto: cores.aviso },
+  vendido: { fundo: cores.perigoFundo, texto: cores.perigo },
+  valido: { fundo: cores.sucessoFundo, texto: cores.sucesso },
+  utilizado: { fundo: cores.neutroFundo, texto: cores.textoSecundario },
+};
+
+export function Badge({ texto, tom = "livre" }: { texto: string; tom?: keyof typeof CORES_BADGE }) {
+  const paleta = CORES_BADGE[tom] ?? CORES_BADGE.livre;
+  return (
+    <View style={[estilos.badge, { backgroundColor: paleta.fundo }]}>
+      <Text style={[estilos.badgeTexto, { color: paleta.texto }]}>{texto}</Text>
+    </View>
+  );
+}
+
+export function Cartao({ children, style }: { children: ReactNode; style?: object }) {
+  return <View style={[estilos.cartao, style]}>{children}</View>;
+}
+
 export const estilos = StyleSheet.create({
-  tela: { flex: 1, backgroundColor: "#f5f5f7", padding: 16 },
-  titulo: { fontSize: 20, fontWeight: "700", marginBottom: 12, color: "#1a1a1a" },
-  campoContainer: { marginBottom: 12 },
-  campoLabel: { fontSize: 13, color: "#444", marginBottom: 4 },
-  campoInput: {
-    borderWidth: 1,
-    borderColor: "#d0d0d6",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    backgroundColor: "#fff",
+  tela: { flex: 1, backgroundColor: cores.fundo, padding: espaco.lg },
+  titulo: { fontSize: 22, fontWeight: "800", marginBottom: espaco.md, color: cores.texto },
+  subtitulo: {
     fontSize: 15,
+    fontWeight: "700",
+    color: cores.texto,
+    marginTop: espaco.sm,
+    marginBottom: espaco.sm,
   },
-  botao: { borderRadius: 8, paddingVertical: 12, alignItems: "center", marginTop: 4 },
-  botao_primario: { backgroundColor: "#2f5bea" },
-  botao_secundario: { backgroundColor: "#6b7280" },
-  botao_perigo: { backgroundColor: "#dc2626" },
-  botaoDesabilitado: { opacity: 0.5 },
-  botaoTexto: { color: "#fff", fontWeight: "600", fontSize: 15 },
-  erro: { color: "#dc2626", marginBottom: 8 },
+  campoContainer: { marginBottom: espaco.md },
+  campoLabel: { fontSize: 13, color: cores.textoSecundario, marginBottom: espaco.xs, fontWeight: "600" },
+  campoInput: {
+    borderWidth: 1.5,
+    borderColor: cores.borda,
+    borderRadius: raio.md,
+    paddingHorizontal: espaco.md,
+    paddingVertical: 12,
+    backgroundColor: cores.superficie,
+    fontSize: 15,
+    color: cores.texto,
+  },
+  botao: {
+    borderRadius: raio.md,
+    paddingVertical: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: espaco.xs,
+    ...sombra,
+  },
+  botao_primario: { backgroundColor: cores.primaria },
+  botao_secundario: { backgroundColor: cores.textoSecundario },
+  botao_perigo: { backgroundColor: cores.perigo },
+  botao_fantasma: {
+    backgroundColor: "transparent",
+    borderWidth: 1.5,
+    borderColor: cores.primaria,
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  botaoDesabilitado: { opacity: 0.45 },
+  botaoTexto: { color: "#fff", fontWeight: "700", fontSize: 15 },
+  botaoTextoFantasma: { color: cores.primaria },
+  erroCaixa: {
+    backgroundColor: cores.perigoFundo,
+    borderRadius: raio.md,
+    padding: espaco.md,
+    marginBottom: espaco.md,
+  },
+  erroTexto: { color: cores.perigo, fontWeight: "600" },
   cartao: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: cores.superficie,
+    borderRadius: raio.lg,
+    padding: espaco.lg,
+    marginBottom: espaco.md,
     borderWidth: 1,
-    borderColor: "#e5e5ea",
+    borderColor: cores.borda,
+    ...sombra,
   },
+  badge: {
+    alignSelf: "flex-start",
+    borderRadius: raio.pill,
+    paddingHorizontal: espaco.md,
+    paddingVertical: 4,
+  },
+  badgeTexto: { fontSize: 12, fontWeight: "700" },
 });

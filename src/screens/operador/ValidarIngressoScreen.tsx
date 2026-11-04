@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { api, ApiError } from "../../api/client";
-import { Botao, Campo, Erro, Titulo, estilos } from "../../components/ui";
+import { Badge, Botao, Campo, Cartao, Erro, Titulo, estilos } from "../../components/ui";
+import { cores, espaco } from "../../theme";
 import type { Ingresso } from "../../types/api";
 
 export function ValidarIngressoScreen() {
@@ -45,30 +47,53 @@ export function ValidarIngressoScreen() {
     <ScrollView style={estilos.tela}>
       <Titulo texto="Validar ingresso na entrada" />
       <Erro mensagem={erro} />
-      {mensagem && <Text style={{ color: "#16a34a", marginBottom: 12 }}>{mensagem}</Text>}
+      {mensagem && (
+        <View
+          style={{
+            backgroundColor: cores.sucessoFundo,
+            borderRadius: 12,
+            padding: espaco.md,
+            marginBottom: espaco.md,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <Ionicons name="checkmark-circle" size={20} color={cores.sucesso} />
+          <Text style={{ color: cores.sucesso, fontWeight: "600", flex: 1 }}>{mensagem}</Text>
+        </View>
+      )}
 
       <Campo
         label="Código do ingresso"
         value={codigo}
         onChangeText={setCodigo}
         autoCapitalize="none"
+        placeholder="cole ou digite o código"
       />
       <Botao titulo="Buscar" onPress={buscar} carregando={carregando} desabilitado={!codigo} />
 
       {ingresso && (
-        <View style={[estilos.cartao, { marginTop: 16 }]}>
-          <Text style={{ fontWeight: "700" }}>{ingresso.reserva.sessao.evento.titulo}</Text>
-          <Text>
-            Assento {ingresso.reserva.assento.fila}
-            {ingresso.reserva.assento.numero}
-          </Text>
-          <Text style={{ marginTop: 4, fontWeight: "600" }}>
-            Status: {ingresso.status === "UTILIZADO" ? "Já utilizado" : "Válido"}
-          </Text>
+        <Cartao style={{ marginTop: espaco.lg }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontWeight: "700", fontSize: 16, color: cores.texto }}>
+                {ingresso.reserva.sessao.evento.titulo}
+              </Text>
+              <Text style={{ color: cores.textoSecundario, marginTop: 2 }}>
+                Assento {ingresso.reserva.assento.fila}
+                {ingresso.reserva.assento.numero}
+              </Text>
+            </View>
+            <Badge
+              texto={ingresso.status === "UTILIZADO" ? "Já utilizado" : "Válido"}
+              tom={ingresso.status === "UTILIZADO" ? "utilizado" : "valido"}
+            />
+          </View>
           {ingresso.status !== "UTILIZADO" && (
             <Botao titulo="Confirmar entrada" onPress={validar} carregando={carregando} />
           )}
-        </View>
+        </Cartao>
       )}
     </ScrollView>
   );
