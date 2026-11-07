@@ -19,10 +19,11 @@ import { cores, espaco } from "../../theme";
 import type { Ingresso, Sessao } from "../../types/api";
 
 export function CheckoutScreen({ route, navigation }: { route: any; navigation: any }) {
-  const { sessao, reservaIds, expiraEm, assentos } = route.params as {
+  const { sessao, reservaIds, expiraEm, valorTotal, assentos } = route.params as {
     sessao: Sessao;
     reservaIds: number[];
     expiraEm: string;
+    valorTotal: number;
     assentos: string[];
   };
 
@@ -41,7 +42,6 @@ export function CheckoutScreen({ route, navigation }: { route: any; navigation: 
     return () => clearInterval(intervalo);
   }, [expiraEm, emitidos]);
 
-  const total = Number(sessao.preco) * reservaIds.length;
   const expirou = segundos <= 0 && !emitidos;
   const relogio = `${Math.floor(segundos / 60)}:${String(segundos % 60).padStart(2, "0")}`;
 
@@ -49,7 +49,10 @@ export function CheckoutScreen({ route, navigation }: { route: any; navigation: 
     setErro(null);
     setPagando(true);
     try {
-      const resultado = await api.post<{ ingressos: Ingresso[] }>("/pagamentos", { reservaIds });
+      const resultado = await api.post<{ ingressos: Ingresso[]; valorTotal: number }>(
+        "/pagamentos",
+        { reservaIds },
+      );
       setEmitidos(resultado.ingressos);
     } catch (e) {
       setErro(e instanceof ApiError ? e.message : "Não foi possível confirmar o pagamento");
@@ -128,7 +131,7 @@ export function CheckoutScreen({ route, navigation }: { route: any; navigation: 
 
           <Separador />
 
-          <LinhaInfo rotulo="Total" valor={real(total)} destaque />
+          <LinhaInfo rotulo="Total" valor={real(valorTotal)} destaque />
         </Cartao>
 
         <Text style={{ color: cores.textoTerciario, fontSize: 12, textAlign: "center" }}>
@@ -141,7 +144,7 @@ export function CheckoutScreen({ route, navigation }: { route: any; navigation: 
           <Botao titulo="Escolher assentos novamente" onPress={() => navigation.goBack()} />
         ) : (
           <Botao
-            titulo={`Pagar ${real(total)}`}
+            titulo={`Pagar ${real(valorTotal)}`}
             icone="lock-closed"
             onPress={pagar}
             carregando={pagando}

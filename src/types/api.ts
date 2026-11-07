@@ -5,6 +5,7 @@ export interface Usuario {
   nome: string;
   email: string;
   papel: Papel;
+  criadoEm?: string;
 }
 
 export interface Evento {
@@ -75,6 +76,20 @@ export interface RelatorioVendas {
     ingressosVendidos: number;
     valorArrecadado: number;
   }>;
+}
+
+/** Uma linha por ingresso vendido — relatório em SQL puro (JOIN de 8 tabelas). */
+export interface RelatorioVendaDetalhada {
+  vendaId: number;
+  dataVenda: string;
+  comprador: string;
+  filme: string;
+  sala: string;
+  dataHoraSessao: string;
+  assento: string;
+  preco: number;
+  codigoIngresso: string;
+  statusIngresso: "VALIDO" | "UTILIZADO";
 }
 
 export interface RelatorioOcupacao {

@@ -4,6 +4,7 @@ import { FilmesScreen } from "../screens/operador/gerencia/FilmesScreen";
 import { SalasScreen } from "../screens/operador/gerencia/SalasScreen";
 import { SessoesScreen } from "../screens/operador/gerencia/SessoesScreen";
 import { RelatoriosScreen } from "../screens/operador/gerencia/RelatoriosScreen";
+import { UsuariosScreen } from "../screens/operador/gerencia/UsuariosScreen";
 import { SairBotao } from "./SairBotao";
 import { opcoesNavegacao } from "../theme";
 
@@ -17,6 +18,7 @@ export function GerenciaStack() {
       <Stack.Screen name="Salas" component={SalasScreen} options={{ title: "Salas" }} />
       <Stack.Screen name="Sessoes" component={SessoesScreen} options={{ title: "Sessões" }} />
       <Stack.Screen name="Relatorios" component={RelatoriosScreen} options={{ title: "Relatórios" }} />
+      <Stack.Screen name="Usuarios" component={UsuariosScreen} options={{ title: "Usuários" }} />
     </Stack.Navigator>
   );
 }

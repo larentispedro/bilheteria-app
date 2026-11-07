@@ -28,6 +28,12 @@ const ITENS = [
     descricao: "Vendas e taxa de ocupação",
     icone: "bar-chart-outline" as const,
   },
+  {
+    rota: "Usuarios",
+    titulo: "Usuários",
+    descricao: "Cadastro de operadores e clientes",
+    icone: "people-outline" as const,
+  },
 ];
 
 export function MenuGerenciaScreen({ navigation }: { navigation: any }) {

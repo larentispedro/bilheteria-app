@@ -74,14 +74,16 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
     setErro(null);
     setReservando(true);
     try {
-      const resultado = await api.post<{ reservas: Array<{ id: number }>; expiraEm: string }>(
-        `/sessoes/${sessao.id}/reservas`,
-        { assentoIds: selecionados },
-      );
+      const resultado = await api.post<{
+        reservas: Array<{ id: number }>;
+        expiraEm: string;
+        valorTotal: number;
+      }>(`/sessoes/${sessao.id}/reservas`, { assentoIds: selecionados });
       navigation.navigate("Checkout", {
         sessao,
         reservaIds: resultado.reservas.map((r) => r.id),
         expiraEm: resultado.expiraEm,
+        valorTotal: resultado.valorTotal,
         assentos: rotulosSelecionados,
       });
     } catch (e) {
@@ -95,7 +97,6 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
   const rotulosSelecionados = assentos
     .filter((a) => selecionados.includes(a.id))
     .map((a) => `${a.fila}${a.numero}`);
-  const total = Number(sessao.preco) * selecionados.length;
 
   if (carregando) return <Carregando />;
 
@@ -244,9 +245,9 @@ export function MapaAssentosScreen({ route, navigation }: { route: any; navigati
             </Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={{ fontSize: 12, color: cores.textoSecundario }}>Total</Text>
+            <Text style={{ fontSize: 12, color: cores.textoSecundario }}>Preço por assento</Text>
             <Text style={{ fontWeight: "800", color: cores.primaria, fontSize: 19 }}>
-              {real(total)}
+              {real(sessao.preco)}
             </Text>
           </View>
         </View>

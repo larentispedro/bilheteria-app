@@ -4,14 +4,15 @@ import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../api/client";
 import { dataHoraCurta, real } from "../../../format";
-import { Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
+import { Badge, Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
 import { cores, espaco, larguras, raio } from "../../../theme";
-import type { RelatorioOcupacao, RelatorioVendas } from "../../../types/api";
+import type { RelatorioOcupacao, RelatorioVendaDetalhada, RelatorioVendas } from "../../../types/api";
 
 
 export function RelatoriosScreen() {
   const [vendas, setVendas] = useState<RelatorioVendas | null>(null);
   const [ocupacao, setOcupacao] = useState<RelatorioOcupacao[]>([]);
+  const [vendasDetalhadas, setVendasDetalhadas] = useState<RelatorioVendaDetalhada[]>([]);
   const [carregando, setCarregando] = useState(true);
 
   useFocusEffect(
@@ -21,11 +22,13 @@ export function RelatoriosScreen() {
       Promise.all([
         api.get<RelatorioVendas>("/relatorios/vendas"),
         api.get<RelatorioOcupacao[]>("/relatorios/ocupacao"),
+        api.get<RelatorioVendaDetalhada[]>("/relatorios/vendas-detalhadas"),
       ])
-        .then(([v, o]) => {
+        .then(([v, o, vd]) => {
           if (!ativo) return;
           setVendas(v);
           setOcupacao(o);
+          setVendasDetalhadas(vd);
         })
         .finally(() => ativo && setCarregando(false));
       return () => {
@@ -107,6 +110,34 @@ export function RelatoriosScreen() {
               <Parcela cor={cores.assentoReservado} rotulo="Reservados" valor={o.reservados} />
               <Parcela cor={cores.bordaForte} rotulo="Livres" valor={o.livres} />
               <Parcela rotulo="Total de lugares" valor={o.totalAssentos} />
+            </View>
+          </Cartao>
+        ))
+      )}
+
+      <Subtitulo texto="Vendas detalhadas" />
+      {vendasDetalhadas.length === 0 ? (
+        <Vazio icone="list-outline" texto="Nenhum ingresso vendido ainda." />
+      ) : (
+        vendasDetalhadas.map((v) => (
+          <Cartao key={v.codigoIngresso} style={{ paddingVertical: espaco.md }}>
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: espaco.md }}>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: "700", color: cores.texto, fontSize: 15 }}>{v.filme}</Text>
+                <Text style={{ color: cores.textoSecundario, fontSize: 13, marginTop: 2 }}>
+                  {v.comprador} · assento {v.assento} · {v.sala}
+                </Text>
+                <Text style={{ color: cores.textoTerciario, fontSize: 12, marginTop: 2 }}>
+                  Sessão em {dataHoraCurta(v.dataHoraSessao)} · vendido em {dataHoraCurta(v.dataVenda)}
+                </Text>
+              </View>
+              <View style={{ alignItems: "flex-end", gap: 4 }}>
+                <Text style={{ fontWeight: "800", color: cores.texto, fontSize: 15 }}>{real(v.preco)}</Text>
+                <Badge
+                  texto={v.statusIngresso === "UTILIZADO" ? "Utilizado" : "Válido"}
+                  tom={v.statusIngresso === "UTILIZADO" ? "utilizado" : "valido"}
+                />
+              </View>
             </View>
           </Cartao>
         ))

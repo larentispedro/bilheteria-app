@@ -12,9 +12,15 @@ Web, Android e iOS.
 
 ## Configuração
 
-Edite `src/api/config.ts` se o backend não estiver em `http://localhost:3000`
-(no emulador Android, use `http://10.0.2.2:3000`; em dispositivo físico, use o IP da
-máquina na rede local).
+O endereço da API vem da variável de ambiente `EXPO_PUBLIC_API_URL` (ver `src/api/config.ts`).
+Copie `.env.example` para `.env` e preencha se o backend não estiver em `http://localhost:3000`.
+
+Sem essa variável, o app usa o backend local: `http://localhost:3000` no modo Web e em
+dispositivo físico (ajuste para o IP da máquina na rede local se precisar), e
+`http://10.0.2.2:3000` automaticamente no emulador Android.
+
+Em produção, defina `EXPO_PUBLIC_API_URL` com a URL pública do backend (ex.:
+`https://bilheteria-api.onrender.com`) antes de gerar o build.
 
 ## Rodando
 
