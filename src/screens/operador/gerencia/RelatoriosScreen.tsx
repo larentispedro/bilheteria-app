@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { Text, View } from "react-native";
+import { Alert, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../api/client";
+import { exportarPdf } from "../../../exportarPdf";
 import { dataHoraCurta, real } from "../../../format";
-import { Badge, Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
+import { Badge, Botao, Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
 import { cores, espaco, larguras, raio } from "../../../theme";
 import type { RelatorioOcupacao, RelatorioVendaDetalhada, RelatorioVendas } from "../../../types/api";
 
@@ -14,6 +15,18 @@ export function RelatoriosScreen() {
   const [ocupacao, setOcupacao] = useState<RelatorioOcupacao[]>([]);
   const [vendasDetalhadas, setVendasDetalhadas] = useState<RelatorioVendaDetalhada[]>([]);
   const [carregando, setCarregando] = useState(true);
+  const [exportando, setExportando] = useState<"vendas" | "ocupacao" | null>(null);
+
+  async function exportar(tipo: "vendas" | "ocupacao") {
+    setExportando(tipo);
+    try {
+      await exportarPdf(`/relatorios/${tipo}/pdf`, `relatorio-${tipo}.pdf`);
+    } catch {
+      Alert.alert("Erro", "Não foi possível gerar o PDF.");
+    } finally {
+      setExportando(null);
+    }
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -54,7 +67,17 @@ export function RelatoriosScreen() {
         />
       </View>
 
-      <Subtitulo texto="Vendas por sessão" />
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: espaco.md }}>
+        <Subtitulo texto="Vendas por sessão" />
+        <Botao
+          titulo="Exportar PDF"
+          variante="fantasma"
+          compacto
+          icone="download-outline"
+          carregando={exportando === "vendas"}
+          onPress={() => exportar("vendas")}
+        />
+      </View>
       {vendas.porSessao.length === 0 ? (
         <Vazio icone="receipt-outline" texto="Nenhuma venda registrada ainda." />
       ) : (
@@ -77,7 +100,17 @@ export function RelatoriosScreen() {
         ))
       )}
 
-      <Subtitulo texto="Taxa de ocupação" />
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: espaco.md }}>
+        <Subtitulo texto="Taxa de ocupação" />
+        <Botao
+          titulo="Exportar PDF"
+          variante="fantasma"
+          compacto
+          icone="download-outline"
+          carregando={exportando === "ocupacao"}
+          onPress={() => exportar("ocupacao")}
+        />
+      </View>
       {ocupacao.length === 0 ? (
         <Vazio icone="bar-chart-outline" texto="Nenhuma sessão cadastrada." />
       ) : (

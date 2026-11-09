@@ -28,9 +28,24 @@ async function request<T>(
   return dados as T;
 }
 
+async function baixarBlob(caminho: string): Promise<Blob> {
+  const token = await storage.obterToken();
+
+  const resposta = await fetch(`${API_URL}${caminho}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+
+  if (!resposta.ok) {
+    throw new ApiError("Não foi possível gerar o arquivo");
+  }
+
+  return resposta.blob();
+}
+
 export const api = {
   get: <T>(caminho: string) => request<T>(caminho),
   post: <T>(caminho: string, body?: unknown) => request<T>(caminho, { method: "POST", body }),
   put: <T>(caminho: string, body?: unknown) => request<T>(caminho, { method: "PUT", body }),
   delete: <T>(caminho: string) => request<T>(caminho, { method: "DELETE" }),
+  baixarBlob,
 };
