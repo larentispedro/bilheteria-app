@@ -35,6 +35,8 @@ export interface Sessao {
   preco: string;
   evento: Evento;
   sala: Sala;
+  /** Calculado pelo backend: true quando a sessão já ocorreu (não é mais vendável). */
+  encerrada: boolean;
 }
 
 export type StatusAssentoMapa = "livre" | "reservado" | "vendido";

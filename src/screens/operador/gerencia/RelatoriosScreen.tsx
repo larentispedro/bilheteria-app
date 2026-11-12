@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
 import { useFocusEffect } from "@react-navigation/native";
-import { Alert, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { api } from "../../../api/client";
 import { exportarPdf } from "../../../exportarPdf";
 import { dataHoraCurta, real } from "../../../format";
-import { Badge, Botao, Carregando, Cartao, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
+import { Badge, Botao, Carregando, Cartao, Erro, Subtitulo, TelaRolavel, Titulo, Vazio } from "../../../components/ui";
 import { cores, espaco, larguras, raio } from "../../../theme";
 import type { RelatorioOcupacao, RelatorioVendaDetalhada, RelatorioVendas } from "../../../types/api";
 
@@ -16,13 +16,17 @@ export function RelatoriosScreen() {
   const [vendasDetalhadas, setVendasDetalhadas] = useState<RelatorioVendaDetalhada[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [exportando, setExportando] = useState<"vendas" | "ocupacao" | null>(null);
+  const [erro, setErro] = useState<string | null>(null);
 
   async function exportar(tipo: "vendas" | "ocupacao") {
     setExportando(tipo);
+    setErro(null);
     try {
       await exportarPdf(`/relatorios/${tipo}/pdf`, `relatorio-${tipo}.pdf`);
     } catch {
-      Alert.alert("Erro", "Não foi possível gerar o PDF.");
+      // Alert.alert não existe no React Native Web: sem isso, o erro ficava
+      // invisível no navegador e o botão parecia não fazer nada.
+      setErro("Não foi possível gerar o PDF.");
     } finally {
       setExportando(null);
     }
@@ -55,6 +59,7 @@ export function RelatoriosScreen() {
   return (
     <TelaRolavel largura={larguras.largo}>
       <Titulo texto="Relatórios" apoio="Vendas e ocupação das sessões." />
+      <Erro mensagem={erro} />
 
       <View style={{ flexDirection: "row", gap: espaco.sm, flexWrap: "wrap" }}>
         <Indicador icone="receipt-outline" rotulo="Vendas" valor={String(vendas.totalVendas)} />
