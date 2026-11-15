@@ -25,7 +25,7 @@ Em produção, `EXPO_PUBLIC_API_URL` é definida como `/api` — um caminho **re
 completa. Assim o build funciona por IP ou por domínio, com ou sem HTTPS, sem precisar
 recompilar se o endereço do backend mudar: o navegador resolve `/api` contra o próprio host que
 serviu a página, e é o Nginx quem repassa isso para a API na porta 3000 (ver seção "Produção"
-do `../backend/README.md`).
+do README do backend em https://github.com/larentispedro/bilheteria-api).
 
 ## Publicação
 
@@ -34,7 +34,7 @@ que o Nginx serve em produção.
 
 ## Rodando
 
-Com o backend rodando (`npm run dev` em `../backend`):
+Com o backend rodando (`npm run dev` no repositório `bilheteria-api`):
 
 ```
 npm install
