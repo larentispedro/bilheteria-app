@@ -29,6 +29,9 @@ do README do backend em https://github.com/larentispedro/bilheteria-api).
 
 ## Publicação
 
+O build web é servido pelo Nginx na mesma instância EC2 do backend, em
+**https://cinepass.agp.app.br**.
+
 `npx expo export -p web` gera a pasta `dist/` com os arquivos estáticos do app; essa pasta é o
 que o Nginx serve em produção.
 
